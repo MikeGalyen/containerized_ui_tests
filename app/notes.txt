@@ -1,0 +1,79 @@
+Create a Virtual env
+-python3.12 -m venv .venv
+Activate the virtual env
+-source .venv/bin/activate
+
+-python3 -m pip install selenium pyautogui pytest
+-python -m pip freeze > requirements.txt
+Using the Dockerfile now to run tests. both, poetry and venv not needed in the container but can be used for local dev
+
+docker-compose up --force-recreate - runs docker compose and forces everything to recreate.
+
+When updating the source code that should be copied to a docker container while using docker compose, use,
+docker-compose up --build to build the new images before deploying, otherwise, the code won't be updated in the container.
+
+I needed to define the network between the containers like, docker network create -d bridge my-net in order for them to
+talk to each other and not have the connection refused.
+
+also I needed to set up the driver like,
+options = webdriver.ChromeOptions()
+self.driver = webdriver.Remote(command_executor='http://172.19.0.3:4444', options=options) for the python container to
+access the selenium container that's serving the chromium browser.
+
+test_testing and test_homepage_exists are now passing in the python:3.12-alpine container. I'm using no standalone dockerfile.
+Dockerfile is instead inside the docker-compose.yaml file which is apparently preferred. Adding, network_mode: host to the
+python container section in the docker-compose file before the build section allows the container to access the host machine
+which is not preferred in most circumstances for security or stability but I think it's fine in this instance. I used a
+combinination of docker-compose build and docker-compose up -d I think in that order and checked the test run results
+in docker desktop looking at the logs for that container.
+
+Final docker-compose.yaml:
+#version: '3'
+services:
+  chrome:
+    image: selenium/node-chrome:latest
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  firefox:
+    image: selenium/node-firefox:latest
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: selenium-hub
+    ports:
+    - "4442:4442"
+    - "4443:4443"
+    - "4444:4444"
+
+  test:
+    image: python
+    network_mode: host
+    build:
+      dockerfile_inline: |
+        FROM python:3.12-alpine as python
+
+        ADD ./app/ /app/
+
+        WORKDIR /app/tests
+
+        RUN python -m pip install pyautogui selenium pytest
+
+        CMD ["python3.12", "-m", "pytest", "-v", "test_test.py"]
+
+
+Actually, I have to docker-compose up -d and then run the python container manually from the docker-compose file or the
+gui in the desktop app to get tests to pass. Otherwise, the python container errors out with the
+ERROR test_test.py - urllib3.exceptions.MaxRetryError error.
