@@ -1,4 +1,3 @@
-version: '3'
 services:
   chrome:
     image: selenium/node-chrome:latest
@@ -39,8 +38,9 @@ services:
 
         WORKDIR /app/tests
 
-        RUN python -m pip install pyautogui selenium pytest
+        RUN python -m pip install pyautogui selenium pytest requests
 
-        CMD ["python3.12", "-m", "pytest", "-v", "test_test.py"]
+        CMD ["python3.12", "-m", "pytest", "-v"]
+    restart: on-failure
 
 

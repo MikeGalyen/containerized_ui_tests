@@ -77,3 +77,8 @@ services:
 Actually, I have to docker-compose up -d and then run the python container manually from the docker-compose file or the
 gui in the desktop app to get tests to pass. Otherwise, the python container errors out with the
 ERROR test_test.py - urllib3.exceptions.MaxRetryError error.
+
+ - docker-compose build is needed when there are changes to the repo.
+ - docker-compose up -d brings up and runs images.
+ - need to run docker-compose down before running again.
+ - sometimes will need to run (running from docker desktop works) python image again to get tests to run.
