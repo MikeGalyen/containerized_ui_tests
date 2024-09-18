@@ -98,3 +98,5 @@ def test_twitter_span():
         .click_twitter_link_in_footer()
      )
     twitter.verify_twitter_redirect_page_has_expected_url()
+
+

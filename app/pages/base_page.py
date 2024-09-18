@@ -28,3 +28,4 @@ class BasePage:
         sel_helper.wait_for_element_to_be_dispalyed(element, wait_time=wait_time)
         sel_helper.click_page_element(element)
 
+

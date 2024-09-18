@@ -11,3 +11,4 @@ class TwitterPage(BasePage):
         self.verify_page_has_expected_url(self.resources.twitter_url, contains_only=True)
         return self
 
+

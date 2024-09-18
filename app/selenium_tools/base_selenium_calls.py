@@ -60,6 +60,3 @@ class BaseSeleniumCalls:
 
     def click_page_element(self, element):
         element.click()
-
-if __name__ == "__main__":
-    x = BaseSeleniumCalls()
